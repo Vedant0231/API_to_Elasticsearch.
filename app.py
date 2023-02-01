@@ -74,4 +74,8 @@ def elastic(response):
 
     print("done")    
 
+<<<<<<< HEAD
 elastic(response)
+=======
+elastic(response) 
+>>>>>>> e57be77f220ea321c36e41a198ab313823615465

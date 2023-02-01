@@ -18,55 +18,60 @@ response = requests.get(
     headers=headers,
 )
 
-json_data = response.json()
 
-final_data = []
+def elastic(response):
 
-"""filtering data"""
-messages =json_data.get("messages")
+    json_data = response.json()
 
-for message in messages:
+    final_data = []
 
-    for ele in message:
+    """filtering data"""
+    messages =json_data.get("messages")
 
-        content = ele.get('content')
-        
-        attachments = ele.get("attachments",[])
-  
-        if content:
-         
-            if len(attachments) > 0:
-         
-                for item in attachments:
-         
-                    final_data.append({**item, "content" : content})
+    for message in messages:
 
-"""create elasticsearch connection"""
-es = Elasticsearch("http://127.0.0.1:9200")
+        for ele in message:
 
-es.indices.put_mapping(index="mj_index", body=mj_mappings)  
+            content = ele.get('content')
+            
+            attachments = ele.get("attachments",[])
+    
+            if content:
+            
+                if len(attachments) > 0:
+            
+                    for item in attachments:
+            
+                        final_data.append({**item, "content" : content})
 
+    """create elasticsearch connection"""
+    es = Elasticsearch("http://127.0.0.1:9200")
 
-for row in final_data:
-
-    doc = {
-        "id":row["id"],
-        "filename":row["filename"],
-        "size":row["size"],
-        "url":row["url"],
-        "proxy_url":row["proxy_url"],
-        "width":row["width"],
-        "height":row["height"],
-        "content_type":row["content_type"],
-        "content":row["content"],
-    }
-
-    es.index(index= "mj_index", body= doc)
-    es.indices.refresh(index="mj_index")
+    es.indices.put_mapping(index="mj_index", body=mj_mappings)  
 
 
-"""storing json data into file"""
-with open(f'json_response/{uuid.uuid4()}.json', 'w') as file:
-    json.dump(final_data, file)
+    for row in final_data:
 
-print("done")    
+        doc = {
+            "id":row["id"],
+            "filename":row["filename"],
+            "size":row["size"],
+            "url":row["url"],
+            "proxy_url":row["proxy_url"],
+            "width":row["width"],
+            "height":row["height"],
+            "content_type":row["content_type"],
+            "content":row["content"],
+        }
+
+        es.index(index= "mj_index", body= doc)
+        es.indices.refresh(index="mj_index")
+
+
+    """storing json data into file"""
+    with open(f'json_response/{uuid.uuid4()}.json', 'w') as file:
+        json.dump(final_data, file)
+
+    print("done")    
+
+elastic(response)
